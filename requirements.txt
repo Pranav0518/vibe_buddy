@@ -1,0 +1,5 @@
+ytmusicapi
+yt-dlp
+python-vlc
+uvicorn
+fastapi

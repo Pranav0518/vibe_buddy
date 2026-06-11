@@ -1,0 +1,6 @@
+vibe_buddy/
+__pycache__/
+*.pyc
+.env
+.vscode/
+image_text_conv/

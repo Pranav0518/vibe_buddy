@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Music Player</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+
+    <h2>Vibe Buddy</h2>
+    <div id="song-card">
+        <img
+            id="thumbnail"
+            style="width:350px;
+            height:auto;
+            border: radius 12px;
+            display:none;">
+
+        <h3 id="title"></h3>
+
+        <p id="artist"></p>
+    </div>
+    <input
+        type="text"
+        id="song"
+        placeholder="Enter song name"
+        onkeypress="if(event.key==='Enter') playSong()">
+
+    <button onclick="playSong()">
+        Play
+    </button>
+
+    <button onclick="pauseSong()">
+        Pause
+    </button>
+
+    <button onclick="resumeSong()">
+        Resume
+    </button>
+
+    <br><br>
+
+    <audio
+        id="player"
+        controls>
+    </audio>
+
+    <script>
+
+        const player =
+            document.getElementById("player");
+
+        async function playSong() {
+
+            const song =
+                document.getElementById("song").value;
+
+            const response =
+                await fetch(
+                    `http://127.0.0.1:8000/play?song=${encodeURIComponent(song)}`
+                );
+
+            const data =
+                await response.json();
+
+            const thumbnail = document.getElementById("thumbnail")
+            
+            thumbnail.onerror = () => {
+                if(
+                    thumbnail.src !== data.fallbackThumbnail
+                ){
+                    thumbnail.src = data.fallbackThumbnail
+                }
+            };
+
+            thumbnail.src = data.thumbnail;
+
+            thumbnail.style.display = "block";
+
+            document.getElementById("title").innerText = data.title;
+
+            document.getElementById("artist").innerText = data.artist;
+            
+            console.log(data);
+
+            player.src = data.audioUrl;
+
+            await player.play();
+        }
+
+        function pauseSong() {
+            player.pause();
+        }
+
+        function resumeSong() {
+            player.play();
+        }
+
+    </script>
+
+</body>
+
+</html>
