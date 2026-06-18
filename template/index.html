@@ -2,102 +2,247 @@
 <html>
 
 <head>
-    <title>Music Player</title>
+
+    <title>Vibe Buddy</title>
+
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    <style>
+
+        body{
+            font-family: Arial, sans-serif;
+            margin:20px;
+        }
+
+        #searchContainer{
+            margin-bottom:20px;
+        }
+
+        #searchBox{
+            width:300px;
+            padding:10px;
+        }
+
+        button{
+            padding:10px;
+        }
+
+        .song-card{
+
+            display:flex;
+
+            gap:15px;
+
+            margin:10px 0;
+
+            padding:10px;
+
+            border:1px solid #ddd;
+
+            border-radius:12px;
+
+            cursor:pointer;
+        }
+
+        .song-card:hover{
+            background:#f5f5f5;
+        }
+
+        .thumbnail{
+            width:160px;
+            border-radius:10px;
+        }
+
+    </style>
+
 </head>
 
 <body>
 
-    <h2>Vibe Buddy</h2>
-    <div id="song-card">
-        <img
-            id="thumbnail"
-            style="width:350px;
-            height:auto;
-            border: radius 12px;
-            display:none;">
+<h1>Vibe Buddy</h1>
 
-        <h3 id="title"></h3>
+<div id="searchContainer">
 
-        <p id="artist"></p>
-    </div>
     <input
-        type="text"
-        id="song"
-        placeholder="Enter song name"
-        onkeypress="if(event.key==='Enter') playSong()">
+        id="searchBox"
+        placeholder="Search Song"
+        onkeypress="
+            if(event.key==='Enter')
+                searchSongs()
+        ">
 
-    <button onclick="playSong()">
-        Play
+    <button onclick="searchSongs()">
+        Search
     </button>
 
-    <button onclick="pauseSong()">
-        Pause
-    </button>
+</div>
 
-    <button onclick="resumeSong()">
-        Resume
-    </button>
+<div id="results"></div>
 
-    <br><br>
+<script>
 
-    <audio
-        id="player"
-        controls>
-    </audio>
+let offset = 0;
 
-    <script>
+let currentQuery = "";
 
-        const player =
-            document.getElementById("player");
+let loading = false;
 
-        async function playSong() {
+async function searchSongs(){
 
-            const song =
-                document.getElementById("song").value;
+    currentQuery =
+        document.getElementById(
+            "searchBox"
+        ).value;
 
-            const response =
-                await fetch(
-                    `http://127.0.0.1:8000/play?song=${encodeURIComponent(song)}`
-                );
+    offset = 0;
 
-            const data =
-                await response.json();
+    const response =
+        await fetch(
+            `/search?query=${encodeURIComponent(
+                currentQuery
+            )}&offset=0`
+        );
 
-            const thumbnail = document.getElementById("thumbnail")
-            
-            thumbnail.onerror = () => {
-                if(
-                    thumbnail.src !== data.fallbackThumbnail
-                ){
-                    thumbnail.src = data.fallbackThumbnail
-                }
-            };
+    const songs =
+        await response.json();
 
-            thumbnail.src = data.thumbnail;
+    const results =
+        document.getElementById(
+            "results"
+        );
 
-            thumbnail.style.display = "block";
+    results.innerHTML = "";
 
-            document.getElementById("title").innerText = data.title;
+    songs.forEach(song => {
 
-            document.getElementById("artist").innerText = data.artist;
-            
-            console.log(data);
+        results.innerHTML += `
 
-            player.src = data.audioUrl;
+        <div
+            class="song-card"
 
-            await player.play();
+            onclick="
+                location.href=
+                '/player?videoId=${song.videoId}'
+            ">
+
+            <img
+                class="thumbnail"
+
+                src="${song.thumbnail}"
+
+                onerror="
+                    this.src=
+                    '${song.fallbackThumbnail}'
+                ">
+
+            <div>
+
+                <h3>
+                    ${song.title}
+                </h3>
+
+                <p>
+                    ${song.artist}
+                </p>
+
+            </div>
+
+        </div>
+
+        `;
+    });
+}
+
+async function loadMoreSongs(){
+
+    if(
+        loading ||
+        currentQuery === ""
+    )
+        return;
+
+    loading = true;
+
+    offset += 20;
+
+    const response =
+        await fetch(
+            `/search?query=${encodeURIComponent(
+                currentQuery
+            )}&offset=${offset}`
+        );
+
+    const songs =
+        await response.json();
+
+    const results =
+        document.getElementById(
+            "results"
+        );
+
+    songs.forEach(song => {
+
+        results.innerHTML += `
+
+        <div
+            class="song-card"
+
+            onclick="
+                location.href=
+                '/player?videoId=${song.videoId}'
+            ">
+
+            <img
+                class="thumbnail"
+
+                src="${song.thumbnail}"
+
+                onerror="
+                    this.src=
+                    '${song.fallbackThumbnail}'
+                ">
+
+            <div>
+
+                <h3>
+                    ${song.title}
+                </h3>
+
+                <p>
+                    ${song.artist}
+                </p>
+
+            </div>
+
+        </div>
+
+        `;
+    });
+
+    loading = false;
+}
+
+window.addEventListener(
+    "scroll",
+    () => {
+
+        if(
+
+            window.innerHeight +
+            window.scrollY
+
+            >=
+
+            document.body.offsetHeight - 200
+
+        ){
+            loadMoreSongs();
         }
 
-        function pauseSong() {
-            player.pause();
-        }
+    }
+);
 
-        function resumeSong() {
-            player.play();
-        }
-
-    </script>
+</script>
 
 </body>
 
