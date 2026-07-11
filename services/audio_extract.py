@@ -1,8 +1,8 @@
-from yt_dlp import YoutubeDL
-from metadata import audio_id
+from yt_dlp import YoutubeDL 
+from services.metadata import audio_metadata
 
 def retrived_audio(song_name):
-    info = audio_id(song_name)
+    info = audio_metadata(song_name)
     video_id = info["videoId"]
     #print(video_id)
 

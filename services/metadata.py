@@ -1,8 +1,9 @@
 from ytmusicapi import YTMusic
-
+from services.recommendation_engine import smart_search
 yt = YTMusic()
 
-def audio_id(song_name):
+#Function to retrieve thes
+def audio_metadata(song_name):
     results = yt.search( 
         song_name,
         filter = "songs"
@@ -27,95 +28,8 @@ def audio_id(song_name):
 
 def search_songs(query,offset=0,limit=20):
 
-    search_results = yt.search(
-        query,
-        filter="songs"
-    )
-
-    if not search_results:
-        return []
-
-    primary_song = search_results[0]
-
-    songs = []
-
-    seen = set()
-
-    # Exact match first
-
-    video_id = primary_song["videoId"]
-
-    songs.append({
-
-        "videoId": video_id,
-
-        "title":
-            primary_song["title"],
-
-        "artist":
-            ",".join(
-                artist["name"]
-                for artist in primary_song["artists"]
-            ),
-
-        "thumbnail":
-            f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
-
-        "fallbackThumbnail":
-            f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg"
-    })
-
-    seen.add(video_id)
-
-    try:
-
-        recommendations = yt.get_watch_playlist(
-            videoId=video_id
-        )
-
-        for track in recommendations["tracks"]:
-
-            track_id = track.get("videoId")
-
-            if not track_id:
-                continue
-
-            if track_id in seen:
-                continue
-
-            songs.append({
-
-                "videoId": track_id,
-
-                "title":
-                    track["title"],
-
-                "artist":
-                    ",".join(
-                        artist["name"]
-                        for artist in track["artists"]
-                    ),
-
-                "thumbnail":
-                    f"https://i.ytimg.com/vi/{track_id}/hqdefault.jpg",
-
-                "fallbackThumbnail":
-                    f"https://i.ytimg.com/vi/{track_id}/mqdefault.jpg"
-            })
-
-            seen.add(track_id)
-
-    except Exception as e:
-
-        print(
-            "Recommendation Error:",
-            e
-        )
-
-    return songs[
-        offset:
-        offset + limit
-    ]
+    result = smart_search(query)
+    return result[offset: offset + limit]
 
 def get_song_details(video_id):
 
