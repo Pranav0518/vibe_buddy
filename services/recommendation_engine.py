@@ -10,7 +10,7 @@ def search_exact_songs(query):
     songs = []
     for song in results[:10]:
         songs.append({
-            "source": ["song"],
+            "sources": ["song"],
             "videoId": song["videoId"],
             "title": song["title"],
             "artist":", ".join(
@@ -105,7 +105,7 @@ def watch_playlist_graph(video_id):
     recommendations = []
     try:
         playlist = yt.get_watch_playlist(
-            videoID=video_id
+            videoId=video_id
         )
 
         for track in playlist.get("tracks",[]):
@@ -175,12 +175,12 @@ def sort_results(results):
     for song in results:
         song["score"] = calculate_score(song)
 
-    result.sort(
+    results.sort(
         key = lambda song: song["score"],
         reverse = True
     )
 
-    return result
+    return results
 
 def smart_search(query):
     exact = search_exact_songs(query)
